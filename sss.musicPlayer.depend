@@ -1,0 +1,15 @@
+# depslib dependency file v1.0
+1539005525 source:c:\users\m raihan hd\documents\codeblocks\sss.musicplayer\main.c
+	<SDL.h>
+	<SDL_mixer.h>
+	<stdlib.h>
+	<stdio.h>
+
+1544420965 source:h:\kuliah\daskom\sss.musicplayer\main.c
+	<SDL.h>
+	<SDL_mixer.h>
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<conio.h>
+

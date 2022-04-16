@@ -5,11 +5,21 @@
 	<stdlib.h>
 	<stdio.h>
 
-1544420965 source:h:\kuliah\daskom\sss.musicplayer\main.c
+1540619014 source:c:\users\rifito\documents\codeblocks\sss.musicplayer\main.c
 	<SDL.h>
 	<SDL_mixer.h>
 	<stdlib.h>
 	<stdio.h>
 	<string.h>
 	<conio.h>
+	<dirent.h>
+
+1540621400 source:h:\kuliah\daskom\ppt uts\sss.musicplayer\sss.musicplayer\main.c
+	<SDL.h>
+	<SDL_mixer.h>
+	<stdlib.h>
+	<stdio.h>
+	<string.h>
+	<conio.h>
+	<dirent.h>
 

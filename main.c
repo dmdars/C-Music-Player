@@ -4,15 +4,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <conio.h>
+#include <dirent.h>
+
 
 //#define Music path
-char *musicBox[6][50], name[6][40];
-char *args[]={"./final_project",NULL};
+char musicBox[50][100], musicExtension[50][50], name[50][100], decoyA[10] = "./Music/";
+
 // Our music file
 Mix_Music *music = NULL;
 
-int search();
-int change();
+int search(int n);
+int change(int n);
 void first();
 void second();
 void third();
@@ -27,36 +29,54 @@ int main(int argc, char* argv[]){
     system("color F0");
     begin:
 	first();
-    int a=0, k, b=0, c=0, i=0, index=0, p=0, d=0, e=0;
+    int a=0, k, b=0, c=0, i=0, j=0, index=0, p=0, d=0, e=0, f=0, n=0, gans=0;
     char text, line[1024];
-    FILE *file;
-    /*Get music path*/
-    file = fopen("Music Collection.txt", "r");
-        while(fscanf(file,"%s", musicBox[i]) != EOF)
-            {
-                i++;
-            }
-    fclose(file);
+    struct dirent *de;  // Pointer for directory entry
+
+
+    // opendir() returns a pointer of DIR type.
+    DIR *dr = opendir("./Music");
+
+    if (dr == NULL)  // opendir returns NULL if couldn't open directory
+    {
+        printf("Could not open current directory" );
+        return 0;
+    }
+    /*Get music name with its extension type */
+     while ((de = readdir(dr)) != NULL)
+     {
+         if(f>=2)
+               {
+                   strcpy(musicBox[i],decoyA); /*This code means that musicBox will always point to the music folder*/
+                   strcpy(musicExtension[i],de->d_name); /*copy the name with the type fie*/
+               i++;
+               }
+               f++;
+      }
+      f=0;
+
+      n=i; /*n is the number of how many music file in the music folder*/
+
+    closedir(dr);
 
     i=0;
     /*Get Music Name*/
-    FILE *fp = fopen ( "Music Name.txt", "r");
-    text = getc ( fp );
-        while ( text != EOF )
+
+    for(i=0;i<n;i++)
+    {
+        for(j=0;j<strlen(musicExtension[i])-4;j++)
         {
-            if ( text != '\n'){
-                line[index++] = text;
-            }
-            else {
-                line[index] = '\0';
-                index = 0;
-                strcpy(name[i], line);
-                i++;
-                /*printf ( "%s\n", line );*/
-            }
-            text = getc ( fp );
+		name[i][j]=musicExtension[i][j]; /*By decreasing the last 4 character, we can get the music name without the ".mp3" sticking in the back */
         }
-    fclose ( fp );
+    }
+
+    /*Get Music Path*/
+
+    for(i=0;i<n;i++)
+    {
+        strcat(musicBox[i],musicExtension[i]); /*We add the music name to the folder path making a file path*/
+    }
+
 
 	// Initialize SDL.
 	if (SDL_Init(SDL_INIT_AUDIO) < 0)
@@ -69,23 +89,21 @@ int main(int argc, char* argv[]){
     /*Start*/
     back:
         printf("MUSIC PLAYER\n\n");
-        for(i=0;i<6;i++)
+        for(i=0;i<n;i++)
         {
-            printf("%d.%s\n", i+1, name[i]);
+            printf("%d.%s\n", i+1, name[i]); /*Display all the music in the music folder*/
         }
         printf("\n\nSelect a music to play\n");
         scanf("%d", &c);
         printf("Press any button to continue.....\n\n");
-        getchar();
-    if(c == NULL || c<1 || c>6)
+        getchar();/*This is just to get all the data type stdin beside integer so it won't break the program*/
+    if(c == NULL || c<1 || c>n)
     {
         printf("INVALID INPUT!\n");
         system("pause");
         system("cls");
         goto back;
     }
-
-
 
 	// Load our music
 	music = Mix_LoadMUS(musicBox[c-1]);
@@ -97,7 +115,7 @@ int main(int argc, char* argv[]){
 
 	while ( a != 1)
     {
-    Mix_HookMusicFinished(musicFinished);
+    Mix_HookMusicFinished(musicFinished); /*Checking if the music has been finished or not*/
     printf("Input 1 to stop playing music and exit\n");
     printf("Input 2 to pause music\n");
     printf("Input 3 to resume music\n");
@@ -117,23 +135,32 @@ int main(int argc, char* argv[]){
 
         case 2:
         Mix_HookMusicFinished(musicFinished);
-        Mix_PauseMusic();
+        Mix_PauseMusic(); /*Pause The Music*/
         e=1;
         break;
 
         case 3:
         Mix_HookMusicFinished(musicFinished);
-        Mix_ResumeMusic();
+        Mix_ResumeMusic(); /*Resume the paused Music*/
         e=0;
         break;
 
         case 4:
         Mix_HookMusicFinished(musicFinished);
-        change();
+        gans = change(n); /*The gans variable will get the number of which array the file's path has been stored*/
+        music = Mix_LoadMUS(musicBox[gans]);
+
+        if (music == NULL)
+		return -1;
+
+        if ( Mix_PlayMusic( music, 1) == -1 )
+            {
+                return -1;
+            }
         break;
 
         case 5:
-        Mix_RewindMusic();
+        Mix_RewindMusic(); /*Rewind Music from the beginning*/
         break;
 
         case 6:
@@ -141,6 +168,7 @@ int main(int argc, char* argv[]){
         printf("Skip Music to (second)\n");
         scanf("%d", &d);
         Mix_RewindMusic();
+        /*Forward the music into whatever seconds ahead*/
         if(Mix_SetMusicPosition(d)==-1) {
         printf("Mix_SetMusicPosition: %s\n", Mix_GetError());
         }
@@ -148,7 +176,7 @@ int main(int argc, char* argv[]){
 
         case 7:
         Mix_HookMusicFinished(musicFinished);
-        search();
+        search(n); /*A function to search music in the array*/
 
         break;
 
@@ -168,45 +196,43 @@ int main(int argc, char* argv[]){
 	// quit SDL_mixer
 	Mix_CloseAudio();
 	system("pause");
+
 	goto begin;
 }
 
-int change()
+int change(int n)
 {
-        int c=0;
+        int c=0, i=0;
         restart:
 
         system("cls");
-        printf("\t1.Impossible\n\t2.Victory\n\t3.Enchantress\n\t4.Star Sky\n\t5.Weight of The World\n\t6.Binary Star\n");
+        for(i=0;i<n;i++)
+        {
+            printf("%d.%s\n", i+1, name[i]);
+        }
         scanf("%d", &c);
         printf("Press any button to continue\n");
         getchar();
-        if(c>0 && c<7)
+        if(c>0 && c<n+1)
         {
-            music = Mix_LoadMUS(musicBox[c-1]);
-            if ( Mix_PlayMusic( music, 1) == -1 )
-            {
-                return -1;
-            }
+            return c-1;
         }
         else
         {
             goto restart;
         }
-
-    SDL_Quit();
 }
 
-int search()
+int search(int n)
 {
-    int i, j, k=0, m, n, p, t;
-    char *result , searchSong[100], list[6][100], point, listSong[100];
+    int i, j, k=0, m, y, p, t;
+    char *result , searchSong[100], list[50][100], point, listSong[100];
     search:
     printf("Search your song\n\n");
     scanf("%s", searchSong);
 
     /*Searching substring from string*/
-    for(i=0;i<6;i++)
+    for(i=0;i<n;i++)
     {
        result = strstr(name[i],searchSong);
         if(result)
@@ -226,7 +252,7 @@ int search()
         printf("%d.%s\n", i+1 ,list[i]);
     }}
     else
-    {
+    { /*If no music found*/
         printf("No music found\n");
         printf("\nSearch again?\n");
         printf("1.Yes\n2.No\n");
@@ -246,19 +272,19 @@ int search()
     }
 
     printf("Input your music number\n");
-    scanf("%d", &n);
+    scanf("%d", &y);
     printf("Press any button to continue\n");
     getchar();
-    if(n<0 || n>k)
+    if(y<0 || y>k)
     {
         printf("INVALID INPUT!\n");
         system("pause");
         system("cls");
         goto lookout;
     }
-    strcpy(listSong,list[n-1]);
+    strcpy(listSong,list[y-1]);
     printf("%s", listSong);
-    for(i=0;i<6;i++)
+    for(i=0;i<n;i++)
     {
         if(strcmp(name[i],listSong) == 0)
         {
@@ -267,8 +293,6 @@ int search()
             break;
         }
     }
-
-
         music = Mix_LoadMUS(musicBox[p]);
 
         if (music == NULL)
@@ -287,7 +311,6 @@ void musicFinished()
 
 void first()
 {
-    int choice;
 	x==NULL;
 	system("cls");
 	printf("\t\t\t\t\t\tMUSIC PLAYER\n\n\n");
@@ -307,22 +330,12 @@ void first()
 	}
 	if(x=='\r')
 		{
-		    printf("press 1 play music and 2 to play game");
-		    scanf("%d", &choice);
 			x='+';
-			//return;
+			return;
 		}
 	if(x=='+')
 		{
-		    if(choice==1)
-            {
-                return;
-            }
-            else if(choice==2)
-            {
-                execvp(args[0],args);
-            }
-
+			return;
 		}
 	else
 	{
